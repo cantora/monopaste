@@ -35,31 +35,23 @@ class Config
     end
   end
 
-  def from_ini(section, key)
+  def lookup_from_ini(section, key)
     return nil if !@ini
     return @ini[section][key]
   end
 
-  def tmux_default(key)
-    case key
-    when 'poll_interval'
-      500
-    else
-      nil
-    end
-  end
-
   def default(section, key)
-    case section
-    when 'tmux'
-      tmux_default(key)
-    else
-      nil
+    val = Adapter::table[section].conf_default(key)
+    if val.nil?
+      raise "no default value for configuration #{section.inspect}.#{key.inspect}"
     end
+
+    return val
   end
 
-  def [](section)
-    return @ini[section]    
+  def lookup(section, key)
+    val = lookup_from_ini(section, key)
+    return val.nil?? default(section, key) : val
   end
 end
 

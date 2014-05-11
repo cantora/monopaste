@@ -18,7 +18,7 @@ module Adapter
     end
 
     def conf(key)
-      return @config[self.class.adapter_name()][key]
+      return @config.lookup(self.class.adapter_name(), key)
     end
 
     def self.set_adapter_name(name)
@@ -29,13 +29,17 @@ module Adapter
       return @a_name
     end
 
-    def self.defaults()
+    def self.conf_defaults()
       @defaults ||= {}
       return @defaults
     end
 
+    def self.conf_default(key)
+      return self.conf_defaults[key]
+    end
+
     def self.set_conf_default(key, val)
-      self.defaults[key] = val
+      self.conf_defaults[key] = val
     end
 
     def self.init_blocks()
