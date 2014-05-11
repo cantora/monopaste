@@ -27,14 +27,15 @@ module PollsForBuffers
 
       msecs = conf('poll_interval').to_i
       usecs = msecs*1000
-      Schedule::callback_every(usecs) do
-        self.do_poll()
+      Schedule::callback_every(usecs) do |itr|
+        self.do_poll(itr)
+        true
       end
     end
   end
 
-  def do_poll()
-    self.instance_exec(&self.class.poll_block())
+  def do_poll(itr)
+    self.instance_exec(itr, &self.class.poll_block())
   end
 end
 
