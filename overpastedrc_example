@@ -1,0 +1,8 @@
+
+[tmux-cli]
+poll_interval = 500
+
+[asdf]
+blah = 23
+
+
