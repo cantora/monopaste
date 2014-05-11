@@ -7,7 +7,7 @@ class Timestamp
   def initialize(unix_ts, microseconds)
     @unix_ts = unix_ts
     @microseconds = microseconds
-    if @microseconds >= 100000
+    if @microseconds >= 1000000
       raise ArgumentError.new, "invalid microseconds: #{@microseconds}"
     end
   end
