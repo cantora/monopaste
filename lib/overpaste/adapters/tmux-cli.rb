@@ -1,11 +1,10 @@
+require 'tempfile'
 [
   'pollsforbuffers',
   'receivesbuffers',
   'originatesbuffers',
   'logs',
   'adapter',
-  'buffer',
-  'timestamp'
 ].each {|x| require(File.join('overpaste', x)) }
 
 module Overpaste
@@ -19,20 +18,17 @@ Adapter::define_adapter_for('tmux-cli') do
   set_conf_default('poll_interval', 500)
 
   to_poll do |itr|
-    buf = `tmux show-buffer`
-    ts = Time.now
-
-    #logger.debug("buf(#{itr}): #{buf[0..31].inspect}")
-    if !buf.nil? && !buf.empty? \
-        && (@prev_buf.nil? || buf != @prev_buf)
-      stamp = Timestamp.new(ts.to_i, ts.tv_usec)
-      record = Buffer.new(stamp, buf)
-      logger.info("got buffer from tmux at #{stamp.inspect}")
-      add_to_buffer_history(record)
-      @prev_buf = buf
-    end
+    process_buffer(`tmux show-buffer`)
   end
 
+  def receive_buffer(buf)
+    f = Tempfile.new("overpaste-tmux-cli.tmp")
+    f << buf.value
+    f.close()
+
+    `tmux load-buffer #{f.path()}`
+    f.unlink()
+  end
 end
 
 end #module Overpaste
