@@ -3,7 +3,7 @@ module Overpaste
 
 module ReceivesBuffers
 
-  def receive_buffer(buf, tag="")
+  def receive_buffer(buf)
     raise "not implemented"
   end
 

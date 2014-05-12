@@ -19,7 +19,6 @@ Adapter::define_adapter_for('tmux-cli') do
   set_conf_default('poll_interval', 500)
 
   to_poll do |itr|
-    @buf_history ||= []
     buf = `tmux show-buffer`
     ts = Time.now
 
@@ -29,7 +28,7 @@ Adapter::define_adapter_for('tmux-cli') do
       stamp = Timestamp.new(ts.to_i, ts.tv_usec)
       record = Buffer.new(stamp, buf)
       logger.info("got buffer from tmux at #{stamp.inspect}")
-      @buf_history << record
+      add_to_buffer_history(record)
       @prev_buf = buf
     end
   end

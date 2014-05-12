@@ -2,6 +2,7 @@ require 'optparse'
 require 'logger'
 
 require 'overpaste/config'
+require 'overpaste/schedule'
 
 module Overpaste
 
@@ -55,9 +56,9 @@ class Daemon
   def initialize(options)
     @options = options
     @log = Logger.new($stderr)
-    #@log.formatter = proc do |sev, t, pname, msg|
-    #  msg + "\n"
-    #end
+    @log.formatter = proc do |sev, t, pname, msg|
+      t.strftime("%m-%d, %H:%M:%S $ ") + msg + "\n"
+    end
 
     @log.level = case @options[:verbose]
     when 0
@@ -71,6 +72,27 @@ class Daemon
     Overpaste::set_logger(@log)
   end
 
+  def push(adapters)
+      bufs = []
+      adapters.each do |name, inst|
+        inst.buffers().each do |buf|
+          bufs << [name, buf].freeze
+        end
+      end
+      return if bufs.empty?
+
+      bufs.sort_by! {|name, buf| buf.timestamp }
+      source_name, buf = bufs.last()
+
+      @log.debug("push buffer out to endpoints:")
+      @log.debug("  #{buf.inspect}")
+
+      adapters.each do |name, inst|
+        next if source_name == name
+        inst.receive_buffer(buf)
+      end
+  end
+
   def run
     @log.debug("options: #{@options.inspect}")
 
@@ -82,8 +104,9 @@ class Daemon
       adapters[name] = klass.new(conf)
     end
 
-    loop do
-
+    Schedule::callback_every(250*1000) do
+      push(adapters)
+      true
     end
   end
 

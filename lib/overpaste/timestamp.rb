@@ -2,6 +2,8 @@
 module Overpaste
 
 class Timestamp
+  include Comparable
+
   attr_reader :unix_ts, :microseconds
 
   def initialize(unix_ts, microseconds)
@@ -11,6 +13,14 @@ class Timestamp
       raise ArgumentError.new, "invalid microseconds: #{@microseconds}"
     end
   end
+
+  def <=>(other_ts)
+    unix_result = (@unix_ts <=> other_ts.unix_ts)
+    return unix_result if unix_result != 0
+
+    return @microseconds <=> other_ts.microseconds
+  end
+
 end
 
 end #module Overpaste
