@@ -2,6 +2,8 @@
 [tmux-cli]
 poll_interval = 500
 
+[osx-cli]
+
 [asdf]
 blah = 23
 
