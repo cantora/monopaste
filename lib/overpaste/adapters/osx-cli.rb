@@ -1,7 +1,6 @@
 [
   'pollsforbuffers',
-  'receivesbuffers',
-  'originatesbuffers',
+  'originatesandreceivesbuffers',
   'logs',
   'adapter',
 ].each {|x| require(File.join('overpaste', x)) }
@@ -47,18 +46,19 @@ if !missing
 end
 
 Adapter.define_adapter_for('osx-cli') do
-  include OriginatesBuffers
+  include OriginatesAndReceivesBuffers
   include PollsForBuffers
-  include ReceivesBuffers
   include Logs
 
   set_conf_default('poll_interval', 500)
 
   to_poll do |itr|
-    process_buffer(OSXCLI.get_buffer())
+    originate_buffer do
+      OSXCLI.get_buffer()
+    end
   end
 
-  def receive_buffer(buf)
+  on_buffer do |buf|
     OSXCLI.put_buffer(buf.value)
   end
 

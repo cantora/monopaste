@@ -22,27 +22,12 @@ module OriginatesBuffers
     end
   end
 
-  def with_prev_buf(&bloc)
-    @prev_buf_mtx ||= Mutex.new
-
-    @prev_buf_mtx.synchronize do
-      bloc.call()
-    end
-  end
-
-  def set_prev_buf(val)
-    with_prev_buf do
-      @prev_buf = val
-    end
-  end
-
-  def process_buffer(str)
-    with_prev_buf do
-      if !str.nil? && !str.empty? \
-          && (@prev_buf.nil? || str != @prev_buf)
-        add_to_buffer_history(str)
-        @prev_buf = str
-      end
+  def originate_buffer(&bloc)
+    str = bloc.call
+    if !str.nil? && !str.empty? \
+        && (@prev_buf.nil? || str != @prev_buf)
+      add_to_buffer_history(str)
+      @prev_buf = str
     end
   end
 

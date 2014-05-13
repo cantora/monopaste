@@ -1,8 +1,7 @@
 require 'tempfile'
 [
   'pollsforbuffers',
-  'receivesbuffers',
-  'originatesbuffers',
+  'originatesandreceivesbuffers',
   'logs',
   'adapter',
 ].each {|x| require(File.join('overpaste', x)) }
@@ -10,18 +9,19 @@ require 'tempfile'
 module Overpaste
 
 Adapter::define_adapter_for('tmux-cli') do
-  include OriginatesBuffers
+  include OriginatesAndReceivesBuffers
   include PollsForBuffers
-  include ReceivesBuffers
   include Logs
 
   set_conf_default('poll_interval', 500)
 
   to_poll do |itr|
-    process_buffer(`tmux show-buffer`)
+    originate_buffer do
+      `tmux show-buffer`
+    end
   end
 
-  def receive_buffer(buf)
+  on_buffer do |buf|
     f = Tempfile.new("overpaste-tmux-cli.tmp")
     f << buf.value
     f.close()
