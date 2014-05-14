@@ -11,6 +11,9 @@ module Adapter
         logger.debug("init block for #{formod}")
         bloc.call(self)
       end
+
+      bl = self.class.after_init_block()
+      self.instance_exec(&bl) if !bl.nil?
     end
 
     def set_conf(config)
@@ -51,6 +54,13 @@ module Adapter
       self.init_blocks() << [mod_name, bloc].freeze
     end
 
+    def self.after_init(&bloc)
+      @after_init = bloc
+    end
+
+    def self.after_init_block()
+      return @after_init
+    end
   end
 
   def self.table()
