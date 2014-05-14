@@ -1,8 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'overpaste'
-
-#pass '-h' to see options
-options = Overpaste::Daemon::parse(ARGV)
-od = Overpaste::Daemon.new(options)
-od.run

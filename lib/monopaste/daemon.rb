@@ -1,10 +1,10 @@
 require 'optparse'
 require 'logger'
 
-require 'overpaste/config'
-require 'overpaste/schedule'
+require 'monopaste/config'
+require 'monopaste/schedule'
 
-module Overpaste
+module Monopaste
 
 class Daemon
 
@@ -12,7 +12,7 @@ class Daemon
     options = {
       :verbose       => 0,
       :daemonize     => true,
-      :conf          => Overpaste::Config::default_path(ENV)
+      :conf          => Monopaste::Config::default_path(ENV)
     }
 
     optparse = OptionParser.new do |opts|
@@ -69,7 +69,7 @@ class Daemon
       Logger::DEBUG
     end
 
-    Overpaste::set_logger(@log)
+    Monopaste::set_logger(@log)
   end
 
   def push(adapters)
@@ -112,4 +112,4 @@ class Daemon
 
 end #class Daemon
 
-end #module Overpaste
+end #module Monopaste

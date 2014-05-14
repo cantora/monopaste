@@ -1,5 +1,5 @@
 
-module Overpaste
+module Monopaste
 
 class Timestamp
   include Comparable
@@ -23,4 +23,4 @@ class Timestamp
 
 end
 
-end #module Overpaste
+end #module Monopaste

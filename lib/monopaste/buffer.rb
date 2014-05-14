@@ -1,6 +1,6 @@
-require 'overpaste/timestamp'
+require 'monopaste/timestamp'
 
-module Overpaste
+module Monopaste
 
 class Buffer
   attr_reader :timestamp, :value, :tag
@@ -21,4 +21,4 @@ class Buffer
 
 end
 
-end #module Overpaste
+end #module Monopaste

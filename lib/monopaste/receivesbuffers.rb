@@ -1,5 +1,5 @@
 
-module Overpaste
+module Monopaste
 
 module ReceivesBuffers
 
@@ -25,4 +25,4 @@ module ReceivesBuffers
 
 end
 
-end #module Overpaste
+end #module Monopaste

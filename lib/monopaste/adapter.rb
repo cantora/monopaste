@@ -1,5 +1,5 @@
 
-module Overpaste
+module Monopaste
 
 module Adapter
 

@@ -4,9 +4,9 @@ require 'tempfile'
   'originatesandreceivesbuffers',
   'logs',
   'adapter',
-].each {|x| require(['overpaste', x].join("/")) }
+].each {|x| require(['monopaste', x].join("/")) }
 
-module Overpaste
+module Monopaste
 
 Adapter::define_adapter_for('tmux-cli') do
   include OriginatesAndReceivesBuffers
@@ -22,7 +22,7 @@ Adapter::define_adapter_for('tmux-cli') do
   end
 
   on_buffer do |buf|
-    f = Tempfile.new("overpaste-tmux-cli.tmp")
+    f = Tempfile.new("monopaste-tmux-cli.tmp")
     f << buf.value
     f.close()
 
@@ -31,4 +31,4 @@ Adapter::define_adapter_for('tmux-cli') do
   end
 end
 
-end #module Overpaste
+end #module Monopaste

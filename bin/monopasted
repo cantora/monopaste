@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'monopaste'
+
+#pass '-h' to see options
+options = Monopaste::Daemon::parse(ARGV)
+od = Monopaste::Daemon.new(options)
+od.run

@@ -1,9 +1,9 @@
 require 'inifile'
 
-require 'overpaste/adapter'
-require 'overpaste/logs'
+require 'monopaste/adapter'
+require 'monopaste/logs'
 
-module Overpaste
+module Monopaste
 
 =begin
 example:
@@ -16,7 +16,7 @@ class Config
   include Logs
 
   def self.default_path(env)
-    File.join(ENV['HOME'] || '/etc', '.overpasterc')
+    File.join(ENV['HOME'] || '/etc', '.monopasterc')
   end
 
   def initialize(path)
@@ -28,7 +28,7 @@ class Config
 
     @ini.sections.each do |adap|
       begin
-        require(File.join('overpaste', 'adapters', adap))
+        require(File.join('monopaste', 'adapters', adap))
       rescue LoadError => e
         logger.warn("failed to load adapter #{adap}: #{e.message}")
       end
@@ -55,4 +55,4 @@ class Config
   end
 end
 
-end #module Overpaste
+end #module Monopaste

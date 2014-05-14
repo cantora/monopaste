@@ -3,9 +3,9 @@
   'originatesandreceivesbuffers',
   'logs',
   'adapter',
-].each {|x| require(['overpaste', x].join("/")) }
+].each {|x| require(['monopaste', x].join("/")) }
 
-module Overpaste
+module Monopaste
 
 module OSXCLI
   OPTIONS = '-pboard general'
@@ -24,7 +24,7 @@ missing = false
 ["pbpaste", "pbcopy"].each do |cmd|
   if `which #{cmd}`.strip.empty?
     warning = "cannot use osx-cli adapter: #{cmd} command is missing"
-    Overpaste.logger().warn(warning)
+    Monopaste.logger().warn(warning)
     missing = true
     break
   end
@@ -38,7 +38,7 @@ if !missing
   if test != OSXCLI.get_buffer()
     warning = "cannot use osx-cli adapter within tmux, " +
               "start daemon outside of tmux session"
-    Overpaste.logger().warn(warning)
+    Monopaste.logger().warn(warning)
     within_tmux = true
   else
     OSXCLI.put_buffer(original)
@@ -64,4 +64,4 @@ Adapter.define_adapter_for('osx-cli') do
 
 end if !missing && !within_tmux
 
-end #module Overpaste
+end #module Monopaste

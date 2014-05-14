@@ -1,5 +1,5 @@
 
-module Overpaste
+module Monopaste
 
 module Schedule
 
@@ -19,4 +19,4 @@ module Schedule
 
 end
 
-end #module Overpaste
+end #module Monopaste

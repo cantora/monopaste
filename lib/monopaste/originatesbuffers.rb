@@ -1,9 +1,9 @@
 require 'thread'
 
-require 'overpaste/timestamp'
-require 'overpaste/buffer'
+require 'monopaste/timestamp'
+require 'monopaste/buffer'
 
-module Overpaste
+module Monopaste
 
 module OriginatesBuffers
 
@@ -53,4 +53,4 @@ module OriginatesBuffers
 
 end
 
-end #module Overpaste
+end #module Monopaste

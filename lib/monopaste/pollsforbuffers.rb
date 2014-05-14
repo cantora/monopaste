@@ -1,6 +1,6 @@
-require 'overpaste/schedule'
+require 'monopaste/schedule'
 
-module Overpaste
+module Monopaste
 
 module PollsForBuffers
 
@@ -39,4 +39,4 @@ module PollsForBuffers
   end
 end
 
-end #module Overpaste
+end #module Monopaste

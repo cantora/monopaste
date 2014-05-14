@@ -1,5 +1,5 @@
 
-module Overpaste
+module Monopaste
 
   def self.logger()
     @logger ||= Logger.new('/dev/null')
@@ -11,7 +11,7 @@ module Overpaste
   end
 end
 
-module Overpaste
+module Monopaste
 module Logs
 
   module ClassMethods
@@ -21,7 +21,7 @@ module Logs
 
     def logger()
       if @log_logger.nil?
-        Overpaste::logger()
+        Monopaste::logger()
       else
         @log_logger
       end
@@ -46,4 +46,4 @@ module Logs
   end
 end
 
-end #module Overpaste
+end #module Monopaste

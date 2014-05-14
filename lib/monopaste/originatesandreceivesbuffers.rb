@@ -1,7 +1,7 @@
-require 'overpaste/originatesbuffers'
-require 'overpaste/receivesbuffers'
+require 'monopaste/originatesbuffers'
+require 'monopaste/receivesbuffers'
 
-module Overpaste
+module Monopaste
 
 module OriginatesAndReceivesBuffers
 
