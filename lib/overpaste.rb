@@ -3,5 +3,5 @@ module Overpaste
 end
 
 ['daemon', 'config'].each do |f|
-  require File.join('overpaste', f)
+  require(['overpaste', f].join("/"))
 end

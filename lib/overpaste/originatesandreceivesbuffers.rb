@@ -1,7 +1,5 @@
-[
-  'originatesbuffers',
-  'receivesbuffers'
-].each {|x| require(File.join('overpaste', x)) }
+require 'overpaste/originatesbuffers'
+require 'overpaste/receivesbuffers'
 
 module Overpaste
 

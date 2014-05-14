@@ -4,7 +4,7 @@ require 'tempfile'
   'originatesandreceivesbuffers',
   'logs',
   'adapter',
-].each {|x| require(File.join('overpaste', x)) }
+].each {|x| require(['overpaste', x].join("/")) }
 
 module Overpaste
 

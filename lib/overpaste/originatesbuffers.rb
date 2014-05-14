@@ -1,8 +1,7 @@
 require 'thread'
-[
-  'timestamp',
-  'buffer'
-].each {|x| require(File.join('overpaste', x)) }
+
+require 'overpaste/timestamp'
+require 'overpaste/buffer'
 
 module Overpaste
 
