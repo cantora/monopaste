@@ -10,7 +10,7 @@ class Daemon
 
   def self.parse(argv)
     options = {
-      :verbose       => 0,
+      :verbose       => 1,
       :daemonize     => false,
       :conf          => Monopaste::Config::default_path(ENV)
     }
@@ -21,7 +21,7 @@ class Daemon
 
       opts.separator "common options:"
 
-      deamonize_help = 'daemonize. make sure to redirect ' +
+      daemonize_help = 'daemonize. make sure to redirect ' +
                        'stdout and stderr somewhere.'
       opts.on('-d', '--daemonize', daemonize_help) do
         options[:daemonize] = true
@@ -34,6 +34,11 @@ class Daemon
 
       opts.on('-v', '--verbose', 'verbose output') do
         options[:verbose] += 1
+      end
+
+      opts.on('-q', '--quiet', 'quiet log output') do
+        options[:verbose] -= 1
+        options[:verbose] = 0 if options[:verbose] < 0
       end
 
       h_help = 'display this message.'
@@ -59,7 +64,7 @@ class Daemon
     @options = options
     @log = Logger.new($stderr)
     @log.formatter = proc do |sev, t, pname, msg|
-      t.strftime("%m-%d, %H:%M:%S $ ") + msg + "\n"
+      t.strftime("%H:%M:%S $ ") + msg + "\n"
     end
 
     @log.level = case @options[:verbose]
@@ -86,8 +91,8 @@ class Daemon
       bufs.sort_by! {|name, buf| buf.timestamp }
       source_name, buf = bufs.last()
 
-      @log.debug("push buffer out to endpoints:")
-      @log.debug("  #{buf.inspect}")
+      @log.info("push buffer")
+      @log.debug("#{buf.inspect}")
 
       adapters.each do |name, inst|
         next if source_name == name
@@ -106,7 +111,7 @@ class Daemon
 
     adapters = {}
     Adapter::table.each do |name, klass|
-      @log.info("setup adapter: #{name.inspect}")
+      @log.info("setup adapter: #{name}")
       adapters[name] = klass.new(conf)
     end
 

@@ -35,7 +35,7 @@ module OriginatesBuffers
       ts = Time.now
       stamp = Timestamp.new(ts.to_i, ts.tv_usec)
       record = Buffer.new(stamp, str)
-      logger.info("got buffer from #{self.class.adapter_name} at #{stamp.inspect}")
+      logger.info("[#{self.class.adapter_name}] -> [monopaste]")
       self.buffer_history << record
     end
   end

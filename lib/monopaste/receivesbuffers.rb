@@ -20,6 +20,7 @@ module ReceivesBuffers
   def receive_buffer(buf)
     return if self.class.receive_block.nil?
 
+    logger.info("[#{self.class.adapter_name}] <- [monopaste]")
     self.instance_exec(buf, &self.class.receive_block)
   end
 
