@@ -11,7 +11,7 @@ class Daemon
   def self.parse(argv)
     options = {
       :verbose       => 0,
-      :daemonize     => true,
+      :daemonize     => false,
       :conf          => Monopaste::Config::default_path(ENV)
     }
 
@@ -21,8 +21,10 @@ class Daemon
 
       opts.separator "common options:"
 
-      opts.on('--dd', 'dont daemonize') do
-        options[:daemonize] = false
+      deamonize_help = 'daemonize. make sure to redirect ' +
+                       'stdout and stderr somewhere.'
+      opts.on('-d', '--daemonize', daemonize_help) do
+        options[:daemonize] = true
       end
 
       conf_help = "configuration file. default: #{options[:conf]}"
@@ -97,6 +99,10 @@ class Daemon
     @log.debug("options: #{@options.inspect}")
 
     conf = Config.new(@options[:conf])
+
+    if @options[:daemonize]
+      Process.daemon(nochdir=true, noclose=true)
+    end
 
     adapters = {}
     Adapter::table.each do |name, klass|
