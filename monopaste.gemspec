@@ -5,20 +5,22 @@ Gem::Specification.new do |s|
   s.summary     = 'push {clip|paste}board content out to multiple environments'
   s.description = s.summary
   s.authors     = ['anthony cantor']
-  s.files       = [File.join('lib', 'monopaste.rb')] + [
+  s.files       = ['lib/monopaste.rb'] + [
     'daemon',
     'buffer',
     'adapter',
     'originatesbuffers',
+    'originatesandreceivesbuffers',
     'receivesbuffers',
     'timestamp',
     'config',
     'logs',
     'pollsforbuffers',
     'schedule'
-  ].map {|x| File.join('lib', 'monopaste', x + ".rb") } + [
-    'tmux-cli'
-  ].map {|x| File.join('lib', 'monopaste', 'adapters', x + ".rb") }
+  ].map {|x| ['lib', 'monopaste', x + ".rb"].join("/") } + [
+    'tmux-cli',
+    'osx-cli'
+  ].map {|x| ['lib', 'monopaste', 'adapters', x + ".rb"].join("/") }
   s.license       = 'GPLv3'
   s.executables   = ['monopasted']
 end
