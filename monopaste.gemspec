@@ -5,6 +5,8 @@ Gem::Specification.new do |s|
   s.summary     = 'push {clip|paste}board content out to multiple environments'
   s.description = s.summary
   s.authors     = ['anthony cantor']
+  s.homepage    = 'https://github.com/cantora/monopaste'
+  s.add_runtime_dependency 'inifile', '~> 2.0'
   s.files       = ['lib/monopaste.rb'] + [
     'daemon',
     'buffer',
