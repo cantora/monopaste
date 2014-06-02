@@ -21,7 +21,8 @@ Gem::Specification.new do |s|
     'schedule'
   ].map {|x| ['lib', 'monopaste', x + ".rb"].join("/") } + [
     'tmux-cli',
-    'osx-cli'
+    'osx-cli',
+    'xclip'
   ].map {|x| ['lib', 'monopaste', 'adapters', x + ".rb"].join("/") }
   s.license       = 'GPLv3'
   s.executables   = ['monopasted']
