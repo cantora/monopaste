@@ -64,7 +64,8 @@ class Daemon
     @options = options
     @log = Logger.new($stderr)
     @log.formatter = proc do |sev, t, pname, msg|
-      t.strftime("%H:%M:%S $ ") + msg + "\n"
+      #t.strftime("%H:%M:%S $ ") + msg + "\n"
+      msg + "\n"
     end
 
     @log.level = case @options[:verbose]
@@ -91,7 +92,7 @@ class Daemon
       bufs.sort_by! {|name, buf| buf.timestamp }
       source_name, buf = bufs.last()
 
-      @log.info("push buffer")
+      @log.debug("push buffer")
       @log.debug("#{buf.inspect}")
 
       adapters.each do |name, inst|
