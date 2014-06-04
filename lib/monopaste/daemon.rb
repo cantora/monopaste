@@ -97,7 +97,9 @@ class Daemon
 
       adapters.each do |name, inst|
         next if source_name == name
-        inst.receive_buffer(buf)
+        if !inst.receive_buffer(buf)
+          @log.warn("[#{name}] failed to push buffer")
+        end
       end
   end
 

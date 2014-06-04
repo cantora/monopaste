@@ -17,7 +17,9 @@ Adapter::define_adapter_for('tmux-cli') do
 
   to_poll do |itr|
     originate_buffer do
-      `tmux show-buffer`
+      Subprocess::stdout_if_success(
+        "tmux show-buffer"
+      )
     end
   end
 
@@ -26,8 +28,9 @@ Adapter::define_adapter_for('tmux-cli') do
     f << buf.value
     f.close()
 
-    `tmux load-buffer #{f.path()}`
+    status = Subprocess::success?("tmux load-buffer #{f.path()}")
     f.unlink()
+    status
   end
 end
 

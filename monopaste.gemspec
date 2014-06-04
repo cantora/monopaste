@@ -2,7 +2,7 @@ Gem::Specification.new do |s|
   s.name        = 'monopaste'
   s.version     = '0.0.1'
   s.date        = '2014-05-07'
-  s.summary     = 'push {clip|paste}board content out to multiple environments'
+  s.summary     = 'push/pull {clip|paste}board content to/from multiple environments'
   s.description = s.summary
   s.authors     = ['anthony cantor']
   s.homepage    = 'https://github.com/cantora/monopaste'
@@ -18,7 +18,8 @@ Gem::Specification.new do |s|
     'config',
     'logs',
     'pollsforbuffers',
-    'schedule'
+    'schedule',
+    'subprocess'
   ].map {|x| ['lib', 'monopaste', x + ".rb"].join("/") } + [
     'tmux-cli',
     'osx-cli',

@@ -3,6 +3,7 @@
   'originatesandreceivesbuffers',
   'logs',
   'adapter',
+  'subprocess'
 ].each {|x| require(['monopaste', x].join("/")) }
 
 module Monopaste
@@ -12,13 +13,16 @@ module XClip
   CMD = 'xclip'
 
   def self.get_buffer(display)
-    `#{CMD} -o #{OPTIONS} -display '#{display}'`
+    Subprocess::stdout_if_success(
+      "#{CMD} -o #{OPTIONS} -display '#{display}'"
+    )
   end
 
   def self.put_buffer(display, buf)
-    IO.popen("#{CMD} -in #{OPTIONS} -display '#{display}'", mode="w") do |io|
-      io << buf.value
-    end
+    Subprocess::pipe(
+      buf.value,
+      "#{CMD} -in #{OPTIONS} -display '#{display}'"
+    )
   end
 end
 
