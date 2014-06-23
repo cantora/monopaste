@@ -1,6 +1,7 @@
 [
   'pollsforbuffers',
-  'originatesandreceivesbuffers',
+  'originatesbuffers',
+  'receivesbuffers',
   'logs',
   'adapter',
   'subprocess'
@@ -34,7 +35,8 @@ if `which #{XClip::CMD}`.strip.empty?
 end
 
 Adapter::define_adapter_for('xclip') do
-  include OriginatesAndReceivesBuffers
+  include OriginatesBuffers
+  include ReceivesBuffers
   include PollsForBuffers
   include Logs
 

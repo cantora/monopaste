@@ -1,3 +1,4 @@
+require 'thread'
 
 module Monopaste
 
@@ -14,6 +15,7 @@ module Adapter
 
       bl = self.class.after_init_block()
       self.instance_exec(&bl) if !bl.nil?
+      @last_buf_mtx = Mutex.new()
     end
 
     def set_conf(config)
@@ -60,6 +62,18 @@ module Adapter
 
     def self.after_init_block()
       return @after_init
+    end
+
+    def last_buf
+      @last_buf_mtx.synchronize do
+        return @last_buf
+      end
+    end
+
+    def last_buf=(val)
+      @last_buf_mtx.synchronize do
+        @last_buf = val
+      end
     end
   end
 

@@ -1,6 +1,7 @@
 [
   'pollsforbuffers',
-  'originatesandreceivesbuffers',
+  'originatesbuffers',
+  'receivesbuffers',
   'logs',
   'adapter',
 ].each {|x| require(['monopaste', x].join("/")) }
@@ -46,7 +47,8 @@ if !missing
 end
 
 Adapter.define_adapter_for('osx-cli') do
-  include OriginatesAndReceivesBuffers
+  include OriginatesBuffers
+  include ReceivesBuffers
   include PollsForBuffers
   include Logs
 

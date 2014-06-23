@@ -18,6 +18,7 @@ module ReceivesBuffers
   end
 
   def receive_buffer(buf)
+    self.last_buf = buf.value
     return if self.class.receive_block.nil?
 
     logger.info("[#{self.class.adapter_name}] <- [monopaste]")

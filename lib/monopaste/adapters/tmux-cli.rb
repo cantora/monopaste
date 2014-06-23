@@ -1,7 +1,8 @@
 require 'tempfile'
 [
   'pollsforbuffers',
-  'originatesandreceivesbuffers',
+  'originatesbuffers',
+  'receivesbuffers',
   'logs',
   'adapter',
 ].each {|x| require(['monopaste', x].join("/")) }
@@ -9,7 +10,8 @@ require 'tempfile'
 module Monopaste
 
 Adapter::define_adapter_for('tmux-cli') do
-  include OriginatesAndReceivesBuffers
+  include OriginatesBuffers
+  include ReceivesBuffers
   include PollsForBuffers
   include Logs
 
