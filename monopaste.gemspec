@@ -12,7 +12,6 @@ Gem::Specification.new do |s|
     'buffer',
     'adapter',
     'originatesbuffers',
-    'originatesandreceivesbuffers',
     'receivesbuffers',
     'timestamp',
     'config',
