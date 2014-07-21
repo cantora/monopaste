@@ -17,12 +17,14 @@ Gem::Specification.new do |s|
     'config',
     'logs',
     'pollsforbuffers',
+    'poolsthreads',
     'schedule',
     'subprocess'
   ].map {|x| ['lib', 'monopaste', x + ".rb"].join("/") } + [
     'tmux-cli',
     'osx-cli',
-    'xclip'
+    'xclip',
+    'socket'
   ].map {|x| ['lib', 'monopaste', 'adapters', x + ".rb"].join("/") }
   s.license       = 'GPLv3'
   s.executables   = ['monopasted']

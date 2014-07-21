@@ -3,9 +3,9 @@ require 'monopaste/timestamp'
 module Monopaste
 
 class Buffer
-  attr_reader :timestamp, :value, :tag
+  attr_reader :timestamp, :value, :source
 
-  def initialize(ts, value, tag="")
+  def initialize(source, ts, value)
     if !ts.is_a?(Timestamp)
       raise ArgumentError.new, "ts must be a timestamp"
     end
@@ -16,7 +16,7 @@ class Buffer
     end
     @value = value
 
-    @tag = tag
+    @source = source
   end
 
 end

@@ -1,4 +1,5 @@
 require 'thread'
+require 'monopaste/buffer'
 
 module Monopaste
 
@@ -32,6 +33,14 @@ module Adapter
 
     def self.adapter_name()
       return @a_name
+    end
+
+    def self.produce_buffer(*args)
+      return Buffer.new(self.adapter_name(), *args)
+    end
+
+    def produce_buffer(*args)
+      return self.class.produce_buffer(*args)
     end
 
     def self.conf_defaults()

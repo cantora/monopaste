@@ -44,6 +44,14 @@ module Logs
       @logs_logger
     end
   end
+
+  def log_exception(e, m = "")
+    m << " " if !m.empty?
+    m << "(#{e.class}) "
+    m << "#{e.message}\n"
+    m << e.backtrace.join("\n")
+    self.logger.error(m)
+  end
 end
 
 end #module Monopaste
