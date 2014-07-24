@@ -7,6 +7,6 @@ module Monopaste
   FileUtils.mkdir_p(TMP_DIR)
 end
 
-['daemon', 'config'].each do |f|
+['daemon', 'config', 'client'].each do |f|
   require(['monopaste', f].join("/"))
 end

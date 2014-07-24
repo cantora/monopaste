@@ -4,6 +4,10 @@ module Monopaste
 
 module Protocol
 
+  ENCODING = Encoding::ASCII_8BIT
+  MAGIC = [0xff, 0xfe, 0xfd, 0xfc]
+  MAGIC_BYTES = MAGIC.pack("C*")
+
   class Parser
     def initialize(&on_error)
       self.reset_state()
@@ -16,16 +20,22 @@ module Protocol
 
     def parse(bytes, &bloc)
       if bytes.is_a?(String)
-        if bytes.encoding != 'US-ASCII'
+        if bytes.encoding != ENCODING
           raise "invalid encoding: #{bytes.encoding.inspect}"
         end
 
         bytes = bytes.bytes        
       end
 
+      n = 0
       bytes.each do |b|
-        self.parse_byte(b, &bloc)
+        if self.parse_byte(b, &bloc)
+          return n
+        end
+        n += 1
       end
+
+      return n
     end
 
     def parse_byte(b, &bloc)
@@ -34,14 +44,16 @@ module Protocol
       end
 
       @state = @state.parse_byte(b, &bloc)
-      case @state
-      when Error
-        @on_error.call()
+      if @state.is_a?(State::Error)
+        @state.abort = @on_error.nil?? true : @on_error.call()
+      end
+
+      if @state.is_a?(State::End)
+        abort = @state.abort
         self.reset_state()
-      when End
-        self.reset_state()
+        abort == true
       else
-        #do nothing
+        false
       end
     end
   end

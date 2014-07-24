@@ -15,6 +15,8 @@ poll_interval = 500 ; milliseconds
 class Config
   include Logs
 
+  class KeyNotFound < Exception; end
+
   def self.default_path(env)
     File.join(ENV['HOME'] || '/etc', '.monopasterc')
   end
@@ -41,17 +43,21 @@ class Config
   end
 
   def default(section, key)
-    val = Adapter::table[section].conf_default(key)
-    if val.nil?
-      raise "no default value for configuration #{section.inspect}.#{key.inspect}"
-    end
-
-    return val
+    adapter = Adapter::table[section]
+    return nil if adapter.nil?
+    return adapter.conf_default(key)
   end
 
   def lookup(section, key)
     val = lookup_from_ini(section, key)
-    return val.nil?? default(section, key) : val
+    val = val.nil?? default(section, key) : val
+    if val.nil?
+      m = "no value for configuration " + \
+          "#{section.inspect}.#{key.inspect}"
+      raise KeyNotFound.new(m)
+    end
+
+    return val
   end
 end
 

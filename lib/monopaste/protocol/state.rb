@@ -1,6 +1,8 @@
 require 'monopaste/protocol/message'
 
-module Monopaste::Protocol::State
+module Monopaste
+module Protocol
+module State
 
   class Base
     #b is the byte to parse
@@ -11,10 +13,16 @@ module Monopaste::Protocol::State
   end
 
   class End < Base
-    def initialize(value=nil)
+    attr_reader :value
+    attr_accessor :abort
+
+    def initialize(value=nil, abort=false)
       @value = value
+      @abort = abort
     end
   end
+
+  class Error < End; end
 
   class UInt16 < Base
     def initialize()
@@ -26,17 +34,21 @@ module Monopaste::Protocol::State
         @first_byte = b
         self
       else
-        End.new([@first_byte, b].pack("S<"))
+        val = [@first_byte, b].pack("C*").unpack("S<").first
+        End.new(val)
       end
     end
   end
 
   class ReqBufN < UInt16
-    def parse_bytes(b, &bloc)
+    def parse_byte(b, &bloc)
       state = super(b, &bloc)
 
+      puts "ReqBufN.parse_byte: #{state.inspect}"
       if state.is_a?(End)
-        bloc.call(Protocol::Message::ReqBufN(result.value))
+        state.abort = bloc.call(
+          Protocol::Message::ReqBufN.new(state.value)
+        )
       end
 
       return state
@@ -47,38 +59,46 @@ module Monopaste::Protocol::State
     def initialize()
       @state = :length
       @uint16 = UInt16.new()
-      @value = ''.encode('US-ASCII')
+      @value = []
     end
 
     def parse_byte_length(b, &bloc)
       @uint16 = @uint16.parse_byte(b, &bloc)
       if @uint16.is_a?(End)
-        @state = :value
         @uint16 = @uint16.value
         if @uint16 < 0 || @uint16 > 65535
           raise "how could @uint16 = #{@uint16.inspect}?"
         end
+        (@uint16 == 0)? :done : :value
+      else
+        :length
       end
     end
 
     def parse_byte_value(b, &_)
-      if @value.size < @uint16
-        @value << b.chr().encode('US-ASCII')
-        return false
+      @value << b
+      if @value.size >= @uint16
+        return :done
       end
-      return true
+
+      return :value
     end
 
     def parse_byte(b, &bloc)
-      @state = if @state == :length
+      @state = case @state
+      when :length
         self.parse_byte_length(b, &bloc)
+      when :value
+        self.parse_byte_value(b, &bloc)
       else
-        if self.parse_byte_value(b, &bloc)
-          return End.new(@value)
-        end
+        raise "shouldnt get here"
       end
 
-      return self
+      if @state == :done
+        End.new(@value)
+      else
+        self
+      end
     end
   end
 
@@ -87,7 +107,9 @@ module Monopaste::Protocol::State
     def parse_byte(b, &bloc)
       state = super(b, &bloc)
       if state.is_a?(End)
-        bloc.call(Protocol::Message::ResBufN.new(state.value))
+        state.abort = bloc.call(
+          Protocol::Message::ResBufN.new(state.value)
+        )
       end
 
       return state
@@ -95,48 +117,55 @@ module Monopaste::Protocol::State
   end
 
   class Seek < Base
-    MAGIC = "\x37\xd6\x4d\x02"
-
     def initialize()
       @state = :seek0
     end
 
     def state_from_opcode(opcode, &bloc)
       case opcode
-      when Protocol::Message::ProtoError.Byte
+      when Protocol::Message::ProtoError::Byte
         bloc.call(ProtoError.new())
         End.new()
-      when Protocol::Message::ReqBufN.Byte
+      when Protocol::Message::ReqBufN::Byte
         ReqBufN.new()
-      when Protocol::Message::ResBufN.Byte
+      when Protocol::Message::ResBufN::Byte
         ResBufN.new()
       else
         Error.new()
       end
     end
 
-    def parse_byte(b, &bloc)
-      if @state == :opcode
-        if !@opcode_state
-          @opcode_state = state_from_opcode(b, &bloc)
-        end
+    def parse_byte_opcode(b, &bloc)
+      if !@opcode_state
+        @opcode_state = state_from_opcode(b, &bloc)
+      else
         @opcode_state = @opcode_state.parse_byte(b, &bloc)
+      end
+      puts @opcode_state.inspect
 
-        if @opcode_state.is_a?(End) \
-           || @opcode_state.is_a?(Error)
-          @state = :seek0
-          return @opcode_state
-        end
+      if @opcode_state.is_a?(End) \
+         || @opcode_state.is_a?(Error)
+        @state = :seek0
+        return @opcode_state
+      end
+
+      return self
+    end
+
+    def parse_byte(b, &bloc)
+      puts @state.inspect
+      if @state == :opcode
+        return parse_byte_opcode(b, &bloc)
       end
 
       @state = case [b, @state]
-      when [MAGIC[0], :seek0]
+      when [Protocol::MAGIC[0], :seek0]
         :seek1
-      when [MAGIC[1], :seek1]
+      when [Protocol::MAGIC[1], :seek1]
         :seek2
-      when [MAGIC[2], :seek2]
+      when [Protocol::MAGIC[2], :seek2]
         :seek3
-      when [MAGIC[3], :seek3]
+      when [Protocol::MAGIC[3], :seek3]
         @opcode_state = nil
         :opcode
       else
@@ -148,3 +177,5 @@ module Monopaste::Protocol::State
   end #class Seek
 
 end #module State
+end #module Protocol
+end #module Monopaste

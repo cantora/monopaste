@@ -2,30 +2,24 @@ require 'optparse'
 require 'logger'
 
 require 'monopaste/config'
-require 'monopaste/schedule'
+require 'monopaste/protocol'
+require 'monopaste/protocol/message'
 
 module Monopaste
 
-class Daemon
+class Client
 
   def self.parse(argv)
     options = {
       :verbose       => 1,
-      :daemonize     => false,
       :conf          => Monopaste::Config::default_path(ENV)
     }
 
     optparse = OptionParser.new do |opts|
-      opts.banner = "usage: monopasted [options]"
+      opts.banner = "usage: monopaste [options]"
       opts.separator ""
 
       opts.separator "common options:"
-
-      daemonize_help = 'daemonize. make sure to redirect ' +
-                       'stdout and stderr somewhere.'
-      opts.on('-d', '--daemonize', daemonize_help) do
-        options[:daemonize] = true
-      end
 
       conf_help = "configuration file. default: #{options[:conf]}"
       opts.on('-C', '--config PATH', conf_help) do |path|
@@ -80,50 +74,81 @@ class Daemon
     Monopaste::set_logger(@log)
   end
 
-  def push(adapters)
-      bufs = []
-      adapters.each do |name, inst|
-        inst.buffers().each do |buf|
-          bufs << [name, buf].freeze
-        end
+  def err_exit(msg)
+    $stderr.puts(msg)
+    exit(1)
+  end
+
+  def get_response(sock)
+    last_data = Time.now()
+    parser = Protocol::Parser.new()
+
+    loop do
+      bytes = begin
+        sock.recv_nonblock(1)
+      rescue IO::EAGAINWaitReadable
+        ""
       end
-      return if bufs.empty?
 
-      bufs.sort_by! {|name, buf| buf.timestamp }
-      source_name, buf = bufs.last()
-
-      @log.debug("push buffer")
-      @log.debug("#{buf.inspect}")
-
-      adapters.each do |name, inst|
-        next if source_name == name
-        if !inst.receive_buffer(buf)
-          @log.warn("[#{name}] failed to push buffer")
+      if bytes.size < 1
+        if Time.now() - last_data > 2
+          @log.warn "peer timeout"
+          break
         end
+        next
       end
+
+      last_data = Time.now()
+      n = parser.parse(bytes) do |msg|
+        return msg
+      end
+      break if n < bytes.size
+    end
+
+    nil
+  end
+
+  def reqbufn(sock, index)
+    req = Protocol::Message::ReqBufN.new(0)
+    sock.send(req.serialize(), 0)
+
+    resp = get_response(sock)
+    if resp.nil?
+      @log.warn "no response from server"
+      return
+    end
+
+    puts resp.inspect
   end
 
   def run
     @log.debug("options: #{@options.inspect}")
 
     conf = Config.new(@options[:conf])
-
-    if @options[:daemonize]
-      Process.daemon(nochdir=true, noclose=true)
+    #@log.debug("config: #{conf.inspect}")
+    addr = begin
+      conf.lookup("socket", "address")
+    rescue Config::KeyNotFound
+      err_exit "could not determine the path of " + \
+               "the server socket"
     end
 
-    adapters = {}
-    Adapter::table.each do |name, klass|
-      @log.info("setup adapter: #{name}")
-      adapters[name] = klass.new(conf)
+    @log.debug("server socket: #{addr.inspect}")
+    if !File.socket?(addr)
+      err_exit "file #{addr} is not a socket"
     end
 
-    Schedule::callback_every(250*1000) do
-      push(adapters)
-      true
+    sock = Socket.new(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
+    begin
+      sock.connect(Socket.pack_sockaddr_un(addr))
+    rescue Exception => e
+      err_exit("failed to connect to server: #{e.message}")
     end
+
+    reqbufn(sock, 0)
+    sock.close()
   end
 
-end #class Daemon
+end #class Client
 
 end #module Monopaste

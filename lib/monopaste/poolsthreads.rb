@@ -24,6 +24,8 @@ module PoolsThreads
   def main(i)
     loop do
       bloc, args = @pool_q.pop()
+      args.unshift("$#{i}")
+
       begin
         self.instance_exec(*args, &bloc)
       rescue Exception => e
