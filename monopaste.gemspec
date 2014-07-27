@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'monopaste'
-  s.version     = '0.0.1'
-  s.date        = '2014-05-07'
+  s.version     = '0.0.2'
+  s.date        = '2014-07-26'
   s.summary     = 'push/pull {clip|paste}board content to/from multiple environments'
   s.description = s.summary
   s.authors     = ['anthony cantor']
@@ -19,7 +19,12 @@ Gem::Specification.new do |s|
     'pollsforbuffers',
     'poolsthreads',
     'schedule',
-    'subprocess'
+    'subprocess',
+    'protocol',
+    'protocol/state',
+    'protocol/message',
+    'client',
+    'poolsthreads'
   ].map {|x| ['lib', 'monopaste', x + ".rb"].join("/") } + [
     'tmux-cli',
     'osx-cli',
@@ -27,5 +32,5 @@ Gem::Specification.new do |s|
     'socket'
   ].map {|x| ['lib', 'monopaste', 'adapters', x + ".rb"].join("/") }
   s.license       = 'GPLv3'
-  s.executables   = ['monopasted']
+  s.executables   = ['monopasted', 'monopaste']
 end
