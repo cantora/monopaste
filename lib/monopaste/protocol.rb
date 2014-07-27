@@ -4,7 +4,6 @@ module Monopaste
 
 module Protocol
 
-  ENCODING = Encoding::ASCII_8BIT
   MAGIC = [0xdf, 0x8c, 0xe5, 0xb6]
   MAGIC_BYTES = MAGIC.pack("C*")
 
@@ -20,7 +19,7 @@ module Protocol
 
     def parse(bytes, &bloc)
       if bytes.is_a?(String)
-        if bytes.encoding != ENCODING
+        if bytes.encoding != Encoding::ASCII_8BIT
           raise "invalid encoding: #{bytes.encoding.inspect}"
         end
 

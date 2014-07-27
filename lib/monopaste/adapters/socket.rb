@@ -72,11 +72,11 @@ Adapter::define_adapter_for('socket') do
         true
       when Protocol::Message::ReqBufN
         buf = if msg.index < 1 && !self.last_buf.nil?
-          self.last_buf.value.bytes
+          self.last_buf.value
         else
-          []
+          ""
         end
-        reply = Protocol::Message::ResBufN.new(buf)
+        reply = Protocol::Message::ResBufN.from_str(buf)
         false
       else
         reply = Protocol::Message::ProtoError.new()

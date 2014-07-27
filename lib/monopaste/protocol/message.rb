@@ -48,12 +48,23 @@ module Message
       @buf = buf
     end
 
+    def self.from_str(s)
+      if s.encoding != Encoding::UTF_8
+        m = "expected utf-8, not #{s.encoding.inspect}"
+        raise ArgumentError.new(m)
+      end
+      #treat the UTF-8 as raw bytes for transfer
+      self.new(s.unpack("C*"))
+    end
+
     def payload()
       ([self.opcode, @buf.size] + @buf).pack("CS<C*")
     end
 
     def to_str()
-      @buf.pack("C*").encode('UTF-8')
+      #unpack as raw bytes (no conversion) then
+      #change encoding to UTF-8
+      @buf.pack("C*").force_encoding('UTF-8')
     end
   end
 

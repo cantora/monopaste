@@ -145,6 +145,7 @@ class Client
     @log.debug("response #{resp.inspect}")
     if resp.is_a?(Protocol::Message::ResBufN)
       buf = resp.to_str()
+      #puts buf.inspect
       if buf.size > 0
         print(buf)
         print("\n") if !@options[:no_newline]
