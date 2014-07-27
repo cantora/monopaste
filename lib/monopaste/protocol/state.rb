@@ -44,7 +44,7 @@ module State
     def parse_byte(b, &bloc)
       state = super(b, &bloc)
 
-      puts "ReqBufN.parse_byte: #{state.inspect}"
+      #puts "ReqBufN.parse_byte: #{state.inspect}"
       if state.is_a?(End)
         state.abort = bloc.call(
           Protocol::Message::ReqBufN.new(state.value)
@@ -124,8 +124,11 @@ module State
     def state_from_opcode(opcode, &bloc)
       case opcode
       when Protocol::Message::ProtoError::Byte
-        bloc.call(ProtoError.new())
-        End.new()
+        abort = bloc.call(Protocol::Message::ProtoError.new())
+        End.new(nil, abort)
+      when Protocol::Message::Bye::Byte
+        abort = bloc.call(Protocol::Message::Bye.new())
+        End.new(nil, abort)
       when Protocol::Message::ReqBufN::Byte
         ReqBufN.new()
       when Protocol::Message::ResBufN::Byte
@@ -141,7 +144,7 @@ module State
       else
         @opcode_state = @opcode_state.parse_byte(b, &bloc)
       end
-      puts @opcode_state.inspect
+      #puts @opcode_state.inspect
 
       if @opcode_state.is_a?(End) \
          || @opcode_state.is_a?(Error)
@@ -153,7 +156,7 @@ module State
     end
 
     def parse_byte(b, &bloc)
-      puts @state.inspect
+      #puts @state.inspect
       if @state == :opcode
         return parse_byte_opcode(b, &bloc)
       end

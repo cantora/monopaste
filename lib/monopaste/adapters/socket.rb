@@ -39,7 +39,11 @@ Adapter::define_adapter_for('socket') do
 
   def setup_sock()
     addr = conf('address')
-    File.unlink(addr)
+    begin
+      File.unlink(addr)
+    rescue Errno::ENOENT
+    end
+
     sock = Socket.new(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
     sock.bind(Socket.pack_sockaddr_un(addr))
     sock.listen(5)
@@ -54,16 +58,24 @@ Adapter::define_adapter_for('socket') do
     end
   end
 
-  def self.parse(parser, bytes, logger, tid, &to_send)
+  def parse(parser, bytes, tid, &to_send)
     parser.parse(bytes) do |msg|
-      logger.debug "[socket#{tid}] got msg #{msg.inspect}"
+      self.logger.debug "[socket#{tid}] got msg #{msg.inspect}"
       abort = case msg
       when Protocol::Message::ProtoError
-        logger.warn "[socket#{tid}] peer claims protocol error"
+        self.logger.warn "[socket#{tid}] peer claims protocol error"
+        reply = nil
+        true
+      when Protocol::Message::Bye
+        self.logger.info("[socket#{tid}] peer leaves")
         reply = nil
         true
       when Protocol::Message::ReqBufN
-        buf = "asdf".bytes
+        buf = if msg.index < 1 && !self.last_buf.nil?
+          self.last_buf.value.bytes
+        else
+          []
+        end
         reply = Protocol::Message::ResBufN.new(buf)
         false
       else
@@ -79,7 +91,7 @@ Adapter::define_adapter_for('socket') do
   def handle_client(csock)
     self.with_thread do |tid|
       prefix = "[socket#{tid}] "
-      self.logger.debug prefix + "connection from peer"
+      self.logger.info prefix + "connection from peer"
       parser = Protocol::Parser.new do
         self.logger.warn prefix + "protocol error from peer"
         true
@@ -105,7 +117,7 @@ Adapter::define_adapter_for('socket') do
 
         last_data = Time.now()
         self.logger.debug prefix + "process #{bytes.inspect}"
-        n = self.class::parse(parser, bytes, self.logger, tid) do |data|
+        n = self.parse(parser, bytes, tid) do |data|
           self.logger.debug prefix + "reply with #{data.inspect}"
           csock.send(data, 0)
         end

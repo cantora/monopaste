@@ -8,18 +8,33 @@ require 'monopaste/protocol/message'
 module Monopaste
 
 class Client
+  CMDS = ["buf"]
 
   def self.parse(argv)
     options = {
       :verbose       => 1,
-      :conf          => Monopaste::Config::default_path(ENV)
+      :conf          => Monopaste::Config::default_path(ENV),
+      :no_newline    => false,
+      :cmd           => "buf",
+      :cmd_args      => []
     }
 
     optparse = OptionParser.new do |opts|
-      opts.banner = "usage: monopaste [options]"
+      opts.banner = "usage: monopaste [options] [CMD] [CMD-OPTS]"
+      opts.separator ""
+
+      opts.separator "CMD := #{CMDS.join(", ")}"
+      opts.separator ""
+
+      opts.separator "command (default): buf [N]"
       opts.separator ""
 
       opts.separator "common options:"
+
+      newline_help = 'dont print a newline after output'
+      opts.on('-n', '--no-newline', newline_help) do
+        options[:no_newline] = true
+      end
 
       conf_help = "configuration file. default: #{options[:conf]}"
       opts.on('-C', '--config PATH', conf_help) do |path|
@@ -43,7 +58,14 @@ class Client
 
     begin
       optparse.parse!(argv)
-
+      if argv.size > 0
+        options[:cmd] = argv.shift()
+        if !CMDS.include?(options[:cmd])
+          m = "invalid command #{options[:cmd].inspect}"
+          raise ArgumentError.new(m)
+        end
+        options[:cmd_args] = argv
+      end
     rescue ArgumentError => e
       puts e.message if !e.message.empty?
       puts optparse
@@ -108,9 +130,11 @@ class Client
     nil
   end
 
-  def reqbufn(sock, index)
-    req = Protocol::Message::ReqBufN.new(0)
-    sock.send(req.serialize(), 0)
+  def cmd_buf(sock, index)
+    req = Protocol::Message::ReqBufN.new(index)
+    data = req.serialize()
+    @log.debug("send #{data.inspect}")
+    sock.send(data, 0)
 
     resp = get_response(sock)
     if resp.nil?
@@ -118,14 +142,28 @@ class Client
       return
     end
 
-    puts resp.inspect
+    @log.debug("response #{resp.inspect}")
+    if resp.is_a?(Protocol::Message::ResBufN)
+      buf = resp.to_str()
+      if buf.size > 0
+        print(buf)
+        print("\n") if !@options[:no_newline]
+        0
+      else
+        1
+      end
+    else
+      @log.error("server replied with #{resp.class} message")
+      @log.debug("the message: #{resp.inspect})")
+      2
+    end
   end
 
   def run
     @log.debug("options: #{@options.inspect}")
 
     conf = Config.new(@options[:conf])
-    #@log.debug("config: #{conf.inspect}")
+    @log.debug("config: #{conf.inspect}")
     addr = begin
       conf.lookup("socket", "address")
     rescue Config::KeyNotFound
@@ -145,8 +183,24 @@ class Client
       err_exit("failed to connect to server: #{e.message}")
     end
 
-    reqbufn(sock, 0)
+    status = case @options[:cmd]
+    when "buf"
+
+      n = if @options[:cmd_args].size > 0
+        @options[:cmd_args][0].to_i
+      else
+        0
+      end
+      cmd_buf(sock, n)
+    else
+      1
+    end
+
+    sock.send(Protocol::Message::Bye.new().serialize(), 0)
     sock.close()
+    @log.debug("closed socket")
+
+    return status
   end
 
 end #class Client

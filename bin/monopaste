@@ -5,4 +5,4 @@ require 'monopaste'
 #pass '-h' to see options
 options = Monopaste::Client::parse(ARGV)
 client = Monopaste::Client.new(options)
-client.run
+exit(client.run())

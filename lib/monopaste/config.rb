@@ -32,7 +32,7 @@ class Config
       begin
         require(File.join('monopaste', 'adapters', adap))
       rescue LoadError => e
-        logger.warn("failed to load adapter #{adap}: #{e.message}")
+        logger.warn("failed to load adapter #{adap.inspect}: #{e.message}")
       end
     end
   end

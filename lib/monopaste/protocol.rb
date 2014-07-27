@@ -5,7 +5,7 @@ module Monopaste
 module Protocol
 
   ENCODING = Encoding::ASCII_8BIT
-  MAGIC = [0xff, 0xfe, 0xfd, 0xfc]
+  MAGIC = [0xdf, 0x8c, 0xe5, 0xb6]
   MAGIC_BYTES = MAGIC.pack("C*")
 
   class Parser

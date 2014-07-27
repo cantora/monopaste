@@ -11,16 +11,16 @@ module Message
     end
 
     def payload()
-      raise "not implemented"
+      [self.opcode].pack("C")
     end
   end
 
   class ProtoError < Base
     Byte = 0x00
+  end
 
-    def payload()
-      [self.opcode].pack("C")
-    end
+  class Bye < Base
+    Byte = 0xff
   end
 
   class ReqBufN < Base
@@ -42,13 +42,18 @@ module Message
     attr_reader :buf
     def initialize(buf)
       if !buf.is_a?(Array)
-        raise ArgumentError.new("expected an array of bytes")
+        m = "expected an array of bytes: #{buf.inspect}"
+        raise ArgumentError.new(m)
       end
       @buf = buf
     end
 
     def payload()
       ([self.opcode, @buf.size] + @buf).pack("CS<C*")
+    end
+
+    def to_str()
+      @buf.pack("C*").encode('UTF-8')
     end
   end
 
