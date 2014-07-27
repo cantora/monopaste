@@ -8,13 +8,14 @@ require 'monopaste/protocol/message'
 module Monopaste
 
 class Client
-  CMDS = ["buf"]
+  CMDS = ["buf", "push"]
 
   def self.parse(argv)
     options = {
       :verbose       => 1,
       :conf          => Monopaste::Config::default_path(ENV),
       :no_newline    => false,
+      :strip         => true,
       :cmd           => "buf",
       :cmd_args      => []
     }
@@ -27,14 +28,21 @@ class Client
       opts.separator ""
 
       opts.separator "command (default): buf [N]"
-      opts.separator ""
-
-      opts.separator "common options:"
-
       newline_help = 'dont print a newline after output'
       opts.on('-n', '--no-newline', newline_help) do
         options[:no_newline] = true
       end
+      opts.separator ""
+
+      opts.separator "command: push [FILE]"
+      strip_help = "strip data before sending." \
+                 + " default: #{options[:strip]}"
+      opts.on('--[no-]strip', strip_help) do |v|
+        options[:strip] = v
+      end
+      opts.separator ""
+
+      opts.separator "common options:"
 
       conf_help = "configuration file. default: #{options[:conf]}"
       opts.on('-C', '--config PATH', conf_help) do |path|
@@ -139,7 +147,7 @@ class Client
     resp = get_response(sock)
     if resp.nil?
       @log.warn "no response from server"
-      return
+      return 4
     end
 
     @log.debug("response #{resp.inspect}")
@@ -153,6 +161,56 @@ class Client
       else
         1
       end
+    else
+      @log.error("server replied with #{resp.class} message")
+      @log.debug("the message: #{resp.inspect})")
+      2
+    end
+  end
+
+  def cmd_push(sock, fpath)
+    contents = if fpath == :stdin
+      $stdin.read()
+    else
+      begin
+        File.open(fpath) do |f|
+          f.read()
+        end
+      rescue Errno::ENOENT => e
+        @log.error("error opening #{fpath}: #{e.message}")
+        return 1
+      end
+    end
+
+    if contents.encoding != Encoding::UTF_8
+      contents.encode!(Encoding::UTF_8)
+    end
+
+    data = contents.strip()
+    if data.size < 1
+      @log.error("contents is empty")
+      return 1
+    end
+
+    req = Protocol::Message::ReqPush.from_str(data)
+    data = req.serialize()
+    @log.debug("send #{data.inspect}")
+    sock.send(data, 0)
+
+    resp = get_response(sock)
+    if resp.nil?
+      @log.warn "no response from server"
+      return 4
+    end
+
+    @log.debug("response #{resp.inspect}")
+    case resp
+    when Protocol::Message::ResOK
+      0
+    when Protocol::Message::ResFail
+      msg = resp.to_str()
+      @log.error("failed to push buffer: #{msg}")
+      3
     else
       @log.error("server replied with #{resp.class} message")
       @log.debug("the message: #{resp.inspect})")
@@ -193,6 +251,13 @@ class Client
         0
       end
       cmd_buf(sock, n)
+    when "push"
+      fpath = if @options[:cmd_args].size > 0
+        @options[:cmd_args][0]
+      else
+        :stdin
+      end
+      cmd_push(sock, fpath)
     else
       1
     end

@@ -102,17 +102,39 @@ module State
     end
   end
 
-  class ResBufN < LV
+  class BufMsg < LV
+
+    def make_msg(bytes)
+      raise "not implemented"
+    end
 
     def parse_byte(b, &bloc)
       state = super(b, &bloc)
       if state.is_a?(End)
         state.abort = bloc.call(
-          Protocol::Message::ResBufN.new(state.value)
+          make_msg(state.value)
         )
       end
 
       return state
+    end
+  end
+
+  class ResBufN < BufMsg
+    def make_msg(bytes)
+      Protocol::Message::ResBufN.new(bytes)
+    end
+  end
+
+  class ReqPush < BufMsg
+    def make_msg(bytes)
+      Protocol::Message::ReqPush.new(bytes)
+    end
+  end
+
+  class ResFail < BufMsg
+    def make_msg(bytes)
+      Protocol::Message::ResFail.new(bytes)
     end
   end
 
@@ -123,16 +145,23 @@ module State
 
     def state_from_opcode(opcode, &bloc)
       case opcode
-      when Protocol::Message::ProtoError::Byte
+      when Protocol::Message::ProtoError::BYTE
         abort = bloc.call(Protocol::Message::ProtoError.new())
         End.new(nil, abort)
-      when Protocol::Message::Bye::Byte
+      when Protocol::Message::Bye::BYTE
         abort = bloc.call(Protocol::Message::Bye.new())
         End.new(nil, abort)
-      when Protocol::Message::ReqBufN::Byte
+      when Protocol::Message::ReqBufN::BYTE
         ReqBufN.new()
-      when Protocol::Message::ResBufN::Byte
+      when Protocol::Message::ResBufN::BYTE
         ResBufN.new()
+      when Protocol::Message::ReqPush::BYTE
+        ReqPush.new()
+      when Protocol::Message::ResOK::BYTE
+        abort = bloc.call(Protocol::Message::ResOK.new())
+        End.new(nil, abort)
+      when Protocol::Message::ResFail::BYTE
+        ResFail.new()
       else
         Error.new()
       end

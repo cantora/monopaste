@@ -78,6 +78,12 @@ Adapter::define_adapter_for('socket') do
         end
         reply = Protocol::Message::ResBufN.from_str(buf)
         false
+      when Protocol::Message::ReqPush
+        self.originate_buffer do
+          msg.to_str()
+        end
+        reply = Protocol::Message::ResOK.new()
+        false
       else
         reply = Protocol::Message::ProtoError.new()
         true

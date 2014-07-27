@@ -23,18 +23,20 @@ module OriginatesBuffers
 
   def originate_buffer(&bloc)
     str = bloc.call
-    if !str.nil? && !str.empty? \
-        && (self.last_buf.nil? || str != self.last_buf.value)
-      self.last_buf = add_to_buffer_history(str)
+    if !str.nil? && !str.empty?
+      add_to_buffer_history(str)
     end
   end
 
   def add_to_buffer_history(str)
     with_buffer_history do
-      record = self.produce_buffer(Timestamp.now(), str)
-      logger.info("[#{self.class.adapter_name}] -> [monopaste]")
-      self.buffer_history << record
-      record
+      if self.last_buf.nil? || str != self.last_buf.value
+        record = self.produce_buffer(Timestamp.now(), str)
+        logger.info("[#{self.class.adapter_name}] -> [monopaste]")
+        self.buffer_history << record
+        self.last_buf = record
+        record
+      end
     end
   end
 

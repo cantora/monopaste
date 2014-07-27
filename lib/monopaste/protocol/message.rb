@@ -3,7 +3,7 @@ module Protocol
 module Message
   class Base
     def opcode()
-      self.class::Byte
+      self.class::BYTE
     end
 
     def serialize()
@@ -16,15 +16,15 @@ module Message
   end
 
   class ProtoError < Base
-    Byte = 0x00
+    BYTE = 0x00
   end
 
   class Bye < Base
-    Byte = 0xff
+    BYTE = 0xff
   end
 
   class ReqBufN < Base
-    Byte = 0x01
+    BYTE = 0x01
     
     attr_reader :index
     def initialize(index)
@@ -36,8 +36,7 @@ module Message
     end
   end
 
-  class ResBufN < Base
-    Byte = 0x02
+  class BufMsg < Base
 
     attr_reader :buf
     def initialize(buf)
@@ -68,8 +67,22 @@ module Message
     end
   end
 
-  #OP_REQ_PUSH = 0x03
-  #OP_RES_PUSH = 0x04
+  class ResBufN < BufMsg
+    BYTE = 0x02
+  end
+
+  class ReqPush < BufMsg
+    BYTE = 0x03
+  end
+
+  class ResOK < Base
+    BYTE = 0x04
+  end
+
+  class ResFail < BufMsg
+    BYTE = 0x05
+  end
+
 end #module Message
 end #module Protocol
 end #module Monopaste
