@@ -186,7 +186,7 @@ class Client
       contents.encode!(Encoding::UTF_8)
     end
 
-    data = contents.strip()
+    data = @options[:strip]? contents.strip() : contents
     if data.size < 1
       @log.error("contents is empty")
       return 1
