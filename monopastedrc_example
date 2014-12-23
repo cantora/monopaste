@@ -1,9 +1,0 @@
-
-[tmux-cli]
-poll_interval = 500
-
-[osx-cli]
-
-[xclip]
-poll_interval = 300
-display = :0
