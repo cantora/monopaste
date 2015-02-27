@@ -3,6 +3,7 @@ require 'tempfile'
   'pollsforbuffers',
   'originatesbuffers',
   'receivesbuffers',
+  'subprocess',
   'logs',
   'adapter',
 ].each {|x| require(['monopaste', x].join("/")) }
