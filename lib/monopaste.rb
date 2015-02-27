@@ -1,9 +1,9 @@
 require 'fileutils'
 
 module Monopaste
-  user = ENV["USER"] || ""
+  userid = Process::UID.rid
 
-  TMP_DIR = File.join("/tmp", "monopaste", user)
+  TMP_DIR = File.join("/tmp", "monopaste-#{userid}")
   FileUtils.mkdir_p(TMP_DIR)
 end
 
