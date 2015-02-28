@@ -2,12 +2,13 @@ require 'optparse'
 require 'logger'
 
 require 'monopaste/config'
-require 'monopaste/protocol'
-require 'monopaste/protocol/message'
+require 'monopaste/connectstoserver'
 
 module Monopaste
 
 class Client
+  include ConnectsToServer
+
   CMDS = ["buf", "push"]
 
   def self.parse(argv)
@@ -109,66 +110,24 @@ class Client
     exit(1)
   end
 
-  def get_response(sock)
-    last_data = Time.now()
-    parser = Protocol::Parser.new()
-
-    loop do
-      bytes = begin
-        sock.recv_nonblock(1)
-      rescue IO::EAGAINWaitReadable
-        ""
-      end
-
-      if bytes.size < 1
-        if Time.now() - last_data > 2
-          @log.warn "peer timeout"
-          break
-        end
-        next
-      end
-
-      last_data = Time.now()
-      n = parser.parse(bytes) do |msg|
-        return msg
-      end
-      break if n < bytes.size
-    end
-
-    nil
-  end
-
-  def cmd_buf(sock, index)
-    req = Protocol::Message::ReqBufN.new(index)
-    data = req.serialize()
-    @log.debug("send #{data.inspect}")
-    sock.send(data, 0)
-
-    resp = get_response(sock)
-    if resp.nil?
-      @log.warn "no response from server"
-      return 4
-    end
-
-    @log.debug("response #{resp.inspect}")
-    if resp.is_a?(Protocol::Message::ResBufN)
-      buf = resp.to_str()
-      #puts buf.inspect
-      if buf.size > 0
-        print(buf)
-        print("\n") if !@options[:no_newline]
-        0
-      else
-        1
-      end
-    else
-      @log.error("server replied with #{resp.class} message")
-      @log.debug("the message: #{resp.inspect})")
+  def cmd_buf(index)
+    buf = begin
+      buf_from_server(index)
+    rescue ConnectsToServer::Error => e
+      @log.error(e.message)
       2
     end
+
+    if buf.size > 0
+      print(buf)
+      print("\n") if !@options[:no_newline]
+      0
+    else
+      3
+    end
   end
 
-  def cmd_push(sock, fpath)
+  def cmd_push(fpath)
     contents = if fpath == :stdin
       $stdin.read()
     else
@@ -192,29 +151,12 @@ class Client
       return 1
     end
 
-    req = Protocol::Message::ReqPush.from_str(data)
-    data = req.serialize()
-    @log.debug("send #{data.inspect}")
-    sock.send(data, 0)
-
-    resp = get_response(sock)
-    if resp.nil?
-      @log.warn "no response from server"
-      return 4
-    end
-
-    @log.debug("response #{resp.inspect}")
-    case resp
-    when Protocol::Message::ResOK
-      0
-    when Protocol::Message::ResFail
-      msg = resp.to_str()
-      @log.error("failed to push buffer: #{msg}")
-      3
-    else
-      @log.error("server replied with #{resp.class} message")
-      @log.debug("the message: #{resp.inspect})")
+    result = push_to_server(data)
+    if !result
+      @log.error(result)
       2
+    else
+      0
     end
   end
 
@@ -231,40 +173,31 @@ class Client
     end
 
     @log.debug("server socket: #{addr.inspect}")
-    if !File.socket?(addr)
-      err_exit "file #{addr} is not a socket"
-    end
-
-    sock = Socket.new(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
-    begin
-      sock.connect(Socket.pack_sockaddr_un(addr))
-    rescue Exception => e
-      err_exit("failed to connect to server: #{e.message}")
+    result = connect_to_server(addr)
+    if result.is_a?(String)
+      err_exit result
     end
 
     status = case @options[:cmd]
     when "buf"
-
       n = if @options[:cmd_args].size > 0
         @options[:cmd_args][0].to_i
       else
         0
       end
-      cmd_buf(sock, n)
+      cmd_buf(n)
     when "push"
       fpath = if @options[:cmd_args].size > 0
         @options[:cmd_args][0]
       else
         :stdin
       end
-      cmd_push(sock, fpath)
+      cmd_push(fpath)
     else
       1
     end
 
-    sock.send(Protocol::Message::Bye.new().serialize(), 0)
-    sock.close()
-    @log.debug("closed socket")
+    disconnect_to_server()
 
     return status
   end
