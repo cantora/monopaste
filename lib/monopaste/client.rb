@@ -18,7 +18,8 @@ class Client
       :no_newline    => false,
       :strip         => true,
       :cmd           => "buf",
-      :cmd_args      => []
+      :cmd_args      => [],
+      :addr          => nil
     }
 
     optparse = OptionParser.new do |opts|
@@ -48,6 +49,10 @@ class Client
       conf_help = "configuration file. default: #{options[:conf]}"
       opts.on('-C', '--config PATH', conf_help) do |path|
         options[:conf] = path
+      end
+
+      opts.on('-s', '--sock PATH', "socket address.") do |path|
+        options[:addr] = path
       end
 
       opts.on('-v', '--verbose', 'verbose output') do
@@ -160,18 +165,30 @@ class Client
     end
   end
 
-  def run
-    @log.debug("options: #{@options.inspect}")
-
+  def addr_from_conf
     conf = Config.new(@options[:conf])
     @log.debug("config: #{conf.inspect}")
-    addr = begin
+    begin
       conf.lookup("socket", "address")
     rescue Config::KeyNotFound
       err_exit "could not determine the path of " + \
                "the server socket"
     end
+  end
 
+  def get_addr
+    addr = @options[:addr]
+    if addr.nil?
+      addr_from_conf()
+    else
+      addr
+    end
+  end
+
+  def run
+    @log.debug("options: #{@options.inspect}")
+
+    addr = get_addr()
     @log.debug("server socket: #{addr.inspect}")
     result = connect_to_server(addr)
     if result.is_a?(String)

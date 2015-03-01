@@ -1,3 +1,4 @@
+require 'socket'
 require 'monopaste/protocol'
 require 'monopaste/protocol/message'
 
