@@ -22,6 +22,8 @@ Adapter::define_adapter_for('socket') do
     File.join(Monopaste::TMP_DIR, "socket")
   )
 
+  set_conf_default('permissions', "")
+
   def initialize(conf)
     super(conf)
     initialize_thread_pool(5)
@@ -47,7 +49,7 @@ Adapter::define_adapter_for('socket') do
     perms = conf('permissions')
     sock = Socket.new(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
     sock.bind(Socket.pack_sockaddr_un(addr))
-    if !perms.nil?
+    if !perms.nil? && !perms.empty?
       File.chmod(perms.to_i(8), addr)
     end
     sock.listen(5)

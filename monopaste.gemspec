@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
     'logs',
     'pollsforbuffers',
     'poolsthreads',
+    'connectstoserver',
     'schedule',
     'subprocess',
     'protocol',
