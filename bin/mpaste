@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'monopaste'
+
+#pass '-h' to see options
+args = ["buf", "0"] + ARGV
+options = Monopaste::Client::parse(args)
+client = Monopaste::Client.new(options)
+exit(client.run())

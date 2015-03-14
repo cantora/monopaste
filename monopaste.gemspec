@@ -33,5 +33,5 @@ Gem::Specification.new do |s|
     'socket'
   ].map {|x| ['lib', 'monopaste', 'adapters', x + ".rb"].join("/") }
   s.license       = 'GPLv3'
-  s.executables   = ['monopasted', 'monopaste']
+  s.executables   = ['monopasted', 'monopaste', 'mcp', 'mpaste']
 end
