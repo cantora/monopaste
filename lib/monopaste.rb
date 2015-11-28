@@ -4,7 +4,7 @@ module Monopaste
   userid = Process::UID.rid
 
   TMP_DIR = File.join("/tmp", "monopaste-#{userid}")
-  FileUtils.mkdir_p(TMP_DIR)
+  FileUtils.mkdir_p(TMP_DIR, {:mode => 0700})
 end
 
 ['daemon', 'config', 'client'].each do |f|
